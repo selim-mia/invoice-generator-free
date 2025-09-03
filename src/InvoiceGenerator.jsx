@@ -4,8 +4,9 @@ import { Download, Plus, Trash2, Printer, FileSignature, Upload, RefreshCw, Hist
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import QRCode from "qrcode.react";
-import JsBarcode from "jsbarcode";
-
+/* JsBarcode ডায়নামিক ইমপোর্ট করব */
+//
+// import JsBarcode from "jsbarcode";
 
 /* ========== Countries & Currencies (ISO-like; common use) ========== */
 const COUNTRY_CURRENCY = [
@@ -205,6 +206,7 @@ const COUNTRY_CURRENCY = [
   { country: "Zimbabwe", code: "ZW", currency: "ZWL" }
 ];
 const ALL_CURRENCIES = Array.from(new Set(COUNTRY_CURRENCY.map(c => c.currency)));
+
 /* ========== Helpers ========== */
 const emptyItem = () => ({ description: "", quantity: 1, unitPrice: 0, taxPct: 0 });
 
@@ -254,7 +256,7 @@ const numberToWordsEn = (numIn) => {
 /* ========== Component ========== */
 export default function InvoiceGenerator() {
   /* Parties */
-  const [seller, setSeller] = useState({ name: "Company Name", email: "hello@email.com", phone: "+880-1XXXXXXXXX", address: "Dhaka, Bangladesh" });
+  const [seller, setSeller] = useState({ name: "Company Name", email: "hello@email.com", phone: "+XXX-0000000000", address: "NYC, United States" });
   const [buyer, setBuyer] = useState({ name: "Client Co.", email: "client@example.com", phone: "", address: "" });
 
   /* Meta */
@@ -268,6 +270,7 @@ export default function InvoiceGenerator() {
     notes: "Thank you for your business!",
     terms: "Payment due within 7 days via bank transfer or card.",
   });
+
   /* Localization */
   const [country, setCountry] = useState(localStorage.getItem("country") || "Bangladesh");
   useEffect(() => {
@@ -287,16 +290,29 @@ export default function InvoiceGenerator() {
     return base.replace(/\s+/g, "");
   }, [meta.invoiceNo, meta.issueDate]);
   const barcodeRef = useRef(null);
-  useEffect(() => {
-    if (barcodeRef.current && typeof JsBarcode === "function") {
-      try {
-        JsBarcode(barcodeRef.current, barcodeValue, { format: "CODE128", displayValue: false, margin: 0, height: 40 });
-      } catch (e) {
-        // fail silently
-      }
-    }
-  }, [barcodeRef, barcodeValue]);
 
+  // Dynamically import JsBarcode to avoid ESM default-export errors
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const mod = await import("jsbarcode");
+        const JB = mod.default || mod;
+        if (!cancelled && barcodeRef.current && typeof JB === "function") {
+          JB(barcodeRef.current, barcodeValue, {
+            format: "CODE128",
+            displayValue: false,
+            margin: 0,
+            height: 56,
+            width: 2
+          });
+        }
+      } catch (e) {
+        // console.warn(e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [barcodeValue]);
 
   /* Items & totals */
   const [items, setItems] = useState(() =>
@@ -312,12 +328,16 @@ export default function InvoiceGenerator() {
   /* Logo */
   const [logoDataUrl, setLogoDataUrl] = useState(localStorage.getItem("logo") || null);
 
-  /* Optional sections */
-  const [showNotes, setShowNotes] = useState(localStorage.getItem("showNotes") !== "false");
-  const [showTerms, setShowTerms] = useState(localStorage.getItem("showTerms") !== "false");
-  const [showSignature, setShowSignature] = useState(localStorage.getItem("showSignature") !== "false");
-  const [showQR, setShowQR] = useState(localStorage.getItem("showQR") !== "false");
-  const [enableDiscount, setEnableDiscount] = useState(localStorage.getItem("enableDiscount") !== "false");
+  /* Optional sections (defaults tuned) */
+  const getStoredBool = (key, defVal) => {
+    const v = localStorage.getItem(key);
+    return v === null ? defVal : v === "true";
+  };
+  const [showNotes, setShowNotes] = useState(() => getStoredBool("showNotes", false));
+  const [showTerms, setShowTerms] = useState(() => getStoredBool("showTerms", false));
+  const [showSignature, setShowSignature] = useState(() => getStoredBool("showSignature", true));
+  const [showQR, setShowQR] = useState(() => getStoredBool("showQR", true));
+  const [enableDiscount, setEnableDiscount] = useState(() => getStoredBool("enableDiscount", false));
 
   /* Payment (PayPal / Stripe) */
   const [paymentMethod, setPaymentMethod] = useState(localStorage.getItem("paymentMethod") || "PayPal");
@@ -332,6 +352,9 @@ export default function InvoiceGenerator() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState(() => JSON.parse(localStorage.getItem("invoiceHistory") || "[]"));
 
+  /* Exporting flag to hide UI elements during print/PDF */
+  const [exporting, setExporting] = useState(false);
+
   const invoiceRef = useRef(null);
 
   /* Persist */
@@ -345,6 +368,7 @@ export default function InvoiceGenerator() {
   useEffect(() => localStorage.setItem("showTerms", String(showTerms)), [showTerms]);
   useEffect(() => localStorage.setItem("showSignature", String(showSignature)), [showSignature]);
   useEffect(() => localStorage.setItem("showQR", String(showQR)), [showQR]);
+  useEffect(() => localStorage.setItem("enableDiscount", String(enableDiscount)), [enableDiscount]);
   useEffect(() => {
     localStorage.setItem("paymentMethod", paymentMethod);
     localStorage.setItem("paymentDetails", JSON.stringify(paymentDetails));
@@ -387,7 +411,7 @@ export default function InvoiceGenerator() {
     const prev = meta.invoiceNo;
     const n = parseInt(prev.split("-")[1] || "1000", 10);
     const next = isNaN(n) ? 1001 : n + 1;
-    setSeller({ name: "Company Name", email: "hello@email.com", phone: "+880-1XXXXXXXXX", address: "Dhaka, Bangladesh" });
+    setSeller({ name: "Company Name", email: "hello@email.com", phone: "+XXX-0000000000", address: "NYC, United States" });
     setBuyer({ name: "Client Co.", email: "client@example.com", phone: "", address: "" });
     setMeta((m) => ({
       ...m,
@@ -415,11 +439,20 @@ export default function InvoiceGenerator() {
     localStorage.setItem("invoiceHistory", JSON.stringify(list));
   };
 
-  /* PDF fit-to-page */
+  /* PDF fit-to-page (hide UI bits during capture) */
   const downloadPDF = async () => {
     const node = invoiceRef.current;
     if (!node) return;
-    const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+    setExporting(true);
+    // DOM update অপেক্ষা
+    await new Promise((r) => setTimeout(r, 0));
+
+    const canvas = await html2canvas(node, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      willReadFrequently: true
+    });
     const img = canvas.toDataURL("image/png");
     const pdf = new jsPDF({ unit: "pt", format: "a4" });
     const pageW = pdf.internal.pageSize.getWidth();
@@ -429,11 +462,13 @@ export default function InvoiceGenerator() {
     const x = (pageW - w) / 2, y = (pageH - h) / 2;
     pdf.addImage(img, "PNG", x, y, w, h);
     pdf.save(`${meta.invoiceNo || "invoice"}.pdf`);
+
+    setExporting(false);
     pushHistory();
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50 ${exporting ? "exporting" : ""}`}>
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
         <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3 justify-between">
@@ -460,7 +495,8 @@ export default function InvoiceGenerator() {
         <section className="md:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl shadow p-4">
             <h2 className="font-semibold mb-3">Settings</h2>
-            {/* Country & Currency (forced at top) */}
+
+            {/* Country & Currency */}
             <div className="grid grid-cols-2 gap-2 mb-3 border rounded-xl p-3 bg-gray-50">
               <div>
                 <label className="block text-xs font-medium mb-1">Country</label>
@@ -599,9 +635,17 @@ export default function InvoiceGenerator() {
 
         {/* Preview */}
         <section className="md:col-span-3">
-<div className="preview-root sheet">
+          <div className="preview-root sheet" ref={invoiceRef}>
+            {/* Barcode INSIDE the capture area */}
+            <div className="no-break mb-4 flex justify-center">
+              <div className="inline-flex flex-col items-center">
+                <svg ref={barcodeRef} className="h-14 w-[360px]" />
+                <div className="text-[10px] text-gray-500 mt-1 tracking-wider">
+                  {barcodeValue}
+                </div>
+              </div>
+            </div>
 
-          <div ref={invoiceRef} className="bg-white rounded-2xl shadow p-6 md:p-8 print:p-0 print:shadow-none print:rounded-none">
             {/* Top */}
             <div className="flex items-start justify-between gap-6">
               <div className="flex items-center gap-4">
@@ -627,21 +671,15 @@ export default function InvoiceGenerator() {
               </div>
             </div>
 
-                {/* Bill To (under Seller) */}
-             <div className="md:w-1/2">               
+            {/* Bill To (under Seller) */}
+            <div className="md:w-1/2">
               {(buyer?.name || buyer?.email || buyer?.phone || buyer?.address) && (
                 <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm print:border-0 print:shadow-none">
                   <h3 className="text-base font-semibold tracking-tight">Bill To</h3>
                   <div className="mt-2 text-sm space-y-1">
-                    {buyer?.name && (
-                      <p><span className="font-medium">Name:</span> {buyer.name}</p>
-                    )}
-                    {buyer?.email && (
-                      <p><span className="font-medium">Email:</span> {buyer.email}</p>
-                    )}
-                    {buyer?.phone && (
-                      <p><span className="font-medium">Phone:</span> {buyer.phone}</p>
-                    )}
+                    {buyer?.name && (<p><span className="font-medium">Name:</span> {buyer.name}</p>)}
+                    {buyer?.email && (<p><span className="font-medium">Email:</span> {buyer.email}</p>)}
+                    {buyer?.phone && (<p><span className="font-medium">Phone:</span> {buyer.phone}</p>)}
                     {buyer?.address && (
                       <p className="whitespace-pre-line">
                         <span className="font-medium">Address:</span> {buyer.address}
@@ -650,7 +688,7 @@ export default function InvoiceGenerator() {
                   </div>
                 </div>
               )}
-             </div>
+            </div>
 
             {/* Items */}
             <div className="mt-6">
@@ -663,48 +701,69 @@ export default function InvoiceGenerator() {
                       <th className="p-3 w-36">Unit Price</th>
                       <th className="p-3 w-24">Tax %</th>
                       <th className="p-3 w-32 text-right rounded-r-xl">Line Total</th>
-                      <th className="p-3 w-10"></th>
+                      <th className="p-3 w-10 export-hide"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {calc.rows.map((row, idx) => (
                       <tr key={idx} className="border-b last:border-none align-top">
                         <td className="p-2">
-                          <textarea className="w-full px-3 py-2 rounded-xl border min-h-[64px]" value={row.description} onChange={(e) => updateItem(idx, "description", e.target.value)} placeholder="Service or item description" />
+                          {exporting ? (
+                            <div className="print-cell description">{row.description || "\u00A0"}</div>
+                          ) : (
+                            <textarea
+                              className="px-3 py-2 rounded-xl border min-h-[64px]"
+                              value={row.description}
+                              onChange={(e) => updateItem(idx, "description", e.target.value)}
+                              placeholder="Service or item description"
+                            />
+                          )}
                         </td>
                         <td className="p-2">
-                          <input
-                            type="number"
-                            min={0}
-                            step="1"
-                            className="w-20 px-2 py-2 rounded-xl border text-right"
-                            value={row.quantity}
-                            onChange={(e) => updateItem(idx, "quantity", Number(e.target.value))}
-                          />
+                          {exporting ? (
+                            <div className="print-cell justify-end">{row.quantity}</div>
+                          ) : (
+                            <input
+                              type="number"
+                              min={0}
+                              step="1"
+                              className="w-20 px-2 py-2 rounded-xl border text-right"
+                              value={row.quantity}
+                              onChange={(e) => updateItem(idx, "quantity", Number(e.target.value))}
+                            />
+                          )}
                         </td>
                         <td className="p-2">
-                          <input
-                            type="number"
-                            min={0}
-                            step="1"
-                            className="w-28 px-2 py-2 rounded-xl border text-right"
-                            value={row.unitPrice}
-                            onChange={(e) => updateItem(idx, "unitPrice", Number(e.target.value))}
-                          />
+                          {exporting ? (
+                            <div className="print-cell justify-end">{row.unitPrice}</div>
+                          ) : (
+                            <input
+                              type="number"
+                              min={0}
+                              step="1"
+                              className="w-28 px-2 py-2 rounded-xl border text-right"
+                              value={row.unitPrice}
+                              onChange={(e) => updateItem(idx, "unitPrice", Number(e.target.value))}
+                            />
+                          )}
                         </td>
                         <td className="p-2">
-                          <input
-                            type="number"
-                            min={0}
-                            max={100}
-                            step="0.01"
-                            className="w-20 px-3 py-2 rounded-xl border text-right"
-                            value={row.taxPct}
-                            onChange={(e) => updateItem(idx, "taxPct", Number(e.target.value))}
-                          />
+                          {exporting ? (
+                            <div className="print-cell justify-end">{row.taxPct}</div>
+                          ) : (
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              step="0.01"
+                              className="w-20 px-3 py-2 rounded-xl border text-right"
+                              value={row.taxPct}
+                              onChange={(e) => updateItem(idx, "taxPct", Number(e.target.value))}
+                            />
+                          )}
                         </td>
                         <td className="p-2 text-right font-medium">{formatMoney(row.total, meta.currency)}</td>
-                        <td className="p-2 text-right">
+                        <td className="p-2 text-right export-hide">
                           <button onClick={() => removeItem(idx)} className="p-2 rounded-xl hover:bg-red-50 text-red-600" title="Remove">
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -714,7 +773,9 @@ export default function InvoiceGenerator() {
                   </tbody>
                 </table>
               </div>
-              <button onClick={addItem} className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-white border hover:bg-gray-50 shadow-sm text-sm">
+
+              {/* Hide this button in print and during PDF export */}
+              <button onClick={addItem} className="export-hide mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-white border hover:bg-gray-50 shadow-sm text-sm">
                 <Plus className="w-4 h-4" /> Add Item
               </button>
             </div>
@@ -771,9 +832,7 @@ export default function InvoiceGenerator() {
 
             <div className="mt-6 text-center text-xs text-gray-500">This invoice was generated with the Invoice Generator web app.</div>
           </div>
-        
-</div>
-</section>
+        </section>
       </main>
 
       {/* History Drawer */}
@@ -810,12 +869,31 @@ export default function InvoiceGenerator() {
         </div>
       )}
 
-      
       <style>{`
   @page { size: A4; margin: 0; }
 
   /* Screen */
   .preview-root { width: 100%; }
+
+  /* Export-view static cell style */
+  .print-cell{
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    background: #fff;
+  }
+  .print-cell.description{
+    min-height: 64px;
+    white-space: pre-wrap;
+    align-items: flex-start;
+  }
+  .print-cell.justify-end{ justify-content: flex-end; }
+
+  /* Hide certain controls while exporting to PDF */
+  .exporting .export-hide { display: none !important; }
 
   @media print {
     html, body {
@@ -823,31 +901,29 @@ export default function InvoiceGenerator() {
       -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff !important;
     }
 
-    /* বাম পাশের বন্ধ করার জন্য */
     header, section:first-child { display: none !important; }
 
-    /* মূল ইনভয়েস শিট */
     .sheet {
       width: 210mm;
-      height: 297mm;              /* ফিক্সড A4 হাইট */
-      padding: 10mm 12mm;         /* ভিতরের মার্জিন */
+      height: 297mm;
+      padding: 10mm 12mm;
       box-sizing: border-box;
-      overflow: hidden;           /* অতিরিক্ত কিছু থাকলে কেটে দাও */
+      overflow: hidden;
       background: #fff !important;
 
-      /* JS দিয়ে সেট করা স্কেল ভ্যারিয়েবল; না পেলে 0.96 ডিফল্ট */
       transform: scale(var(--print-scale, 0.96));
       transform-origin: top center;
 
       page-break-inside: avoid; break-inside: avoid;
     }
 
-    /* টেবিল/ব্লকে অনাকাঙ্ক্ষিত ব্রেক এড়ানো */
     .no-break { page-break-inside: avoid; break-inside: avoid; }
     table { width: 100%; border-collapse: collapse; }
+
+    /* Also hide UI bits in print */
+    .export-hide { display: none !important; }
   }
 `}</style>
-
     </div>
   );
 }
