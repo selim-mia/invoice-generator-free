@@ -317,8 +317,8 @@ export default function InvoiceGenerator() {
   /* Items & totals */
   const [items, setItems] = useState(() =>
     JSON.parse(localStorage.getItem("items") || "null") || [
-      { description: "Google Ads Setup & Tracking", quantity: 1, unitPrice: 300, taxPct: 0 },
-      { description: "Monthly Optimization (Retainer)", quantity: 1, unitPrice: 200, taxPct: 0 },
+      { description: "", quantity: 1, unitPrice: 0, taxPct: 0 },
+      { description: "", quantity: 1, unitPrice: 0, taxPct: 0 },
     ]
   );
   const [discountPct, setDiscountPct] = useState(Number(localStorage.getItem("discountPct")) || 0);
@@ -422,8 +422,8 @@ export default function InvoiceGenerator() {
       billToWho: "",
     }));
     setItems([
-      { description: "Google Ads Setup & Tracking", quantity: 1, unitPrice: 300, taxPct: 0 },
-      { description: "Monthly Optimization (Retainer)", quantity: 1, unitPrice: 200, taxPct: 0 },
+      { description: "", quantity: 1, unitPrice: 0, taxPct: 0 },
+      { description: "", quantity: 1, unitPrice: 0, taxPct: 0 },
     ]);
     setDiscountPct(0);
     setShipping(0);
@@ -943,6 +943,8 @@ export default function InvoiceGenerator() {
   main { padding: 0 !important; margin: 0 !important; }
   table { width: 100%; border-collapse: collapse; }
   .no-break { page-break-inside: avoid; break-inside: avoid; }
+
+  
 }
 `}</style>
     </div>
