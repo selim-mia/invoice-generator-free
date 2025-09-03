@@ -10,7 +10,7 @@ export default function App() {
       <SiteHeader />
 
       {/* উপরের স্টিকি হেডারের নিচে কনটেন্ট যেন ঢুকে না যায় তাই padding-top */}
-      <main className="flex-1 pt-5 md:pt-5">
+      <main className="flex-1 pt-4 md:pt-4">
         <InvoiceGenerator />
       </main>
 

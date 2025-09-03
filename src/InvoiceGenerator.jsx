@@ -895,34 +895,55 @@ export default function InvoiceGenerator() {
   /* Hide certain controls while exporting to PDF */
   .exporting .export-hide { display: none !important; }
 
-  @media print {
-    html, body {
-      width: 210mm; height: 297mm; margin: 0; padding: 0;
-      -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff !important;
-    }
+  @page { size: A4; margin: 0; }
 
-    header, section:first-child { display: none !important; }
+/* Screen */
+.preview-root { width: 100%; }
 
-    .sheet {
-      width: 210mm;
-      height: 297mm;
-      padding: 10mm 12mm;
-      box-sizing: border-box;
-      overflow: hidden;
-      background: #fff !important;
+/* Export টাইমে কিছু UI লুকাও */
+.exporting .export-hide { display: none !important; }
 
-      transform: scale(var(--print-scale, 0.96));
-      transform-origin: top center;
-
-      page-break-inside: avoid; break-inside: avoid;
-    }
-
-    .no-break { page-break-inside: avoid; break-inside: avoid; }
-    table { width: 100%; border-collapse: collapse; }
-
-    /* Also hide UI bits in print */
-    .export-hide { display: none !important; }
+/* ===== PRINT ONLY ONE A4 SHEET ===== */
+@media print {
+  html, body {
+    width: 210mm; height: 297mm; margin: 0; padding: 0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff !important;
   }
+
+  /* পেজে শুধু .sheet-টাই দেখাবে, বাকি সব হাইড */
+  body * { visibility: hidden !important; }
+  .sheet, .sheet * { visibility: visible !important; }
+
+  /* .sheet কে পেজের টপে ফিক্সড করে দাও, ফলে একটাই পেজ হবে */
+  .sheet {
+    position: fixed;               /* <-- কন্টেন্ট লেআউট আর পেজ গুনতি ঠিক থাকবে */
+    left: 50%;
+    top: 0;
+    width: 210mm;
+    height: 297mm;                 /* একেবারে A4 */
+    padding: 10mm 12mm;
+    box-sizing: border-box;
+    overflow: hidden;
+    background: #fff !important;
+
+    /* প্রিন্ট স্কেল */
+    transform: translateX(-50%) scale(var(--print-scale, 0.96));
+    transform-origin: top center;
+
+    page-break-inside: avoid; break-inside: avoid;
+  }
+
+  /* কন্ট্রোল/সাইড UI সরিয়ে দাও */
+  header,
+  footer,
+  main > section:first-child,
+  .export-hide { display: none !important; }
+
+  /* কোন অতিরিক্ত প্যাডিং/গ্যাপ যেন না লাগে */
+  main { padding: 0 !important; margin: 0 !important; }
+  table { width: 100%; border-collapse: collapse; }
+  .no-break { page-break-inside: avoid; break-inside: avoid; }
+}
 `}</style>
     </div>
   );
