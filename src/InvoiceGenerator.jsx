@@ -850,9 +850,9 @@ export default function InvoiceGenerator() {
               </div>
             </div>
 
-            <div className="mt-6 text-center text-xs text-gray-500">This invoice was generated with the Invoice Generator web app.</div>
+            <div className="mt-6 text-center text-xs text-gray-500">Thank you for your Business</div>
           </div>
-        </section>       
+        </section>
       </main>
 
       {/* History Drawer */}
@@ -888,7 +888,6 @@ export default function InvoiceGenerator() {
           </div>
         </div>
       )}
-
       <style>{`
   @page { size: A4; margin: 0; }
 
