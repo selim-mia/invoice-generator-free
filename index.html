@@ -1,10 +1,48 @@
 <!doctype html>
 <html lang="en">
+<!-- index.html -->
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Invoice Generator (International)</title>
-    <link rel="icon" type="image/x-icon" href="/public/invoice.png">
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+      <title>InvoiceNotepad — Online Invoice Generator & Free PDF</title>
+      <meta name="description"
+            content="Create professional invoices online. Edit items, taxes, QR payment, barcode, print-ready layout, and one-click PDF export—no sign-up required." />
+
+      <!-- Canonical -->
+      <link rel="canonical" href="https://invoicenotepad.com/" />
+
+      <!-- Favicon (put your favicon.svg/png in /public) -->
+      <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+      <link rel="alternate icon" href="/favicon.png" />
+
+      <!-- Open Graph -->
+      <meta property="og:type" content="website" />
+      <meta property="og:title" content="InvoiceNotepad — Online Invoice Generator" />
+      <meta property="og:description" content="Create & download invoices instantly in your browser." />
+      <meta property="og:url" content="https://invoicenotepad.com/" />
+      <meta property="og:image" content="https://invoicenotepad.com/og-cover.png" />
+
+      <!-- Twitter -->
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="InvoiceNotepad — Online Invoice Generator" />
+      <meta name="twitter:description" content="Create & download invoices instantly in your browser." />
+      <meta name="twitter:image" content="https://invoicenotepad.com/og-cover.png" />
+
+
+        <!-- JSON-LD structured data -->
+        <script type="application/ld+json">
+        {
+          "@context":"https://schema.org",
+          "@type":"WebApplication",
+          "name":"InvoiceNotepad",
+          "url":"https://invoicenotepad.com/",
+          "applicationCategory":"BusinessApplication",
+          "operatingSystem":"Web",
+          "description":"Create professional invoices in your browser. Edit items, taxes, discounts, QR payment, barcode, and export to PDF.",
+          "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}
+        }
+        </script>
   </head>
   <body>
     <div id="root"></div>

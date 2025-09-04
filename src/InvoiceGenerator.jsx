@@ -639,6 +639,18 @@ export default function InvoiceGenerator() {
             {/* Bill To Who */}
             <input className="w-full rounded-xl border px-3 py-2" placeholder="Bill To Who (e.g., Accounts Dept / Attn: John)" value={meta.billToWho} onChange={(e) => setMeta({ ...meta, billToWho: e.target.value })} />
           </div>
+
+              {/* Site-only info block (SEO/marketing). Keep outside `invoiceRef` so it won't appear in PDF/Print. Uses `export-hide` to hide on print. */}
+
+            
+                <div className="export-hide bg-white rounded-2xl shadow p-4 text-sm text-gray-600">
+                  <h2 className="text-base font-semibold mb-2">Online Invoice Generator</h2>
+                  <p>
+                    InvoiceNotepad lets you create professional invoices in your browser:
+                    editable line items, tax & discounts, QR payment, barcode, print-ready layout,
+                    and one-click PDF export—no sign-up required.
+                  </p>
+                </div>           
         </section>
 
         {/* Preview */}
@@ -840,7 +852,7 @@ export default function InvoiceGenerator() {
 
             <div className="mt-6 text-center text-xs text-gray-500">This invoice was generated with the Invoice Generator web app.</div>
           </div>
-        </section>
+        </section>       
       </main>
 
       {/* History Drawer */}
