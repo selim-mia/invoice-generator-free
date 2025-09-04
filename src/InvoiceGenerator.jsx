@@ -272,7 +272,7 @@ export default function InvoiceGenerator() {
   });
 
   /* Localization */
-  const [country, setCountry] = useState(localStorage.getItem("country") || "Bangladesh");
+  const [country, setCountry] = useState(localStorage.getItem("country") || "United States");
   useEffect(() => {
     const found = COUNTRY_CURRENCY.find(c => c.country === country);
     if (found && found.currency !== meta.currency) {
@@ -326,7 +326,15 @@ export default function InvoiceGenerator() {
   const [rounding, setRounding] = useState(Number(localStorage.getItem("rounding")) || 0);
 
   /* Logo */
-  const [logoDataUrl, setLogoDataUrl] = useState(localStorage.getItem("logo") || null);
+  // const [logoDataUrl, setLogoDataUrl] = useState(localStorage.getItem("logo") || null);
+
+        // Logo — default to favicon
+    const [logoDataUrl, setLogoDataUrl] = useState(
+      localStorage.getItem("logo") ||
+      document.querySelector("link[rel~='icon']")?.href ||
+      "/favicon.ico"
+    );
+
 
   /* Optional sections (defaults tuned) */
   const getStoredBool = (key, defVal) => {
@@ -942,9 +950,7 @@ export default function InvoiceGenerator() {
   /* কোন অতিরিক্ত প্যাডিং/গ্যাপ যেন না লাগে */
   main { padding: 0 !important; margin: 0 !important; }
   table { width: 100%; border-collapse: collapse; }
-  .no-break { page-break-inside: avoid; break-inside: avoid; }
-
-  
+  .no-break { page-break-inside: avoid; break-inside: avoid; }  
 }
 `}</style>
     </div>
