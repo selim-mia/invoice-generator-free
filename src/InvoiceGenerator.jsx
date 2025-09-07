@@ -4,7 +4,7 @@ import { Download, Plus, Trash2, Printer, FileSignature, Upload, RefreshCw, Hist
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import QRCode from "qrcode.react";
-/* JsBarcode ডায়নামিক ইমপোর্ট করব */
+/* JsBarcode Will Import Dynamicalloy */
 //
 // import JsBarcode from "jsbarcode";
 
@@ -920,7 +920,7 @@ export default function InvoiceGenerator() {
 /* Screen */
 .preview-root { width: 100%; }
 
-/* Export টাইমে কিছু UI লুকাও */
+/* Export Hide some UI in Time */
 .exporting .export-hide { display: none !important; }
 
 /* ===== PRINT ONLY ONE A4 SHEET ===== */
@@ -930,36 +930,36 @@ export default function InvoiceGenerator() {
     -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff !important;
   }
 
-  /* পেজে শুধু .sheet-টাই দেখাবে, বাকি সব হাইড */
+  /* Only the .sheet will be displayed on the page, everything else will be hidden. */
   body * { visibility: hidden !important; }
   .sheet, .sheet * { visibility: visible !important; }
 
-  /* .sheet কে পেজের টপে ফিক্সড করে দাও, ফলে একটাই পেজ হবে */
+  /* Fix .sheet at the top of the page, so there will be only one page. */
   .sheet {
-    position: fixed;               /* <-- কন্টেন্ট লেআউট আর পেজ গুনতি ঠিক থাকবে */
+    position: fixed;               /* <-- Content layout and page count will be correct. */
     left: 50%;
     top: 0;
     width: 210mm;
-    height: 297mm;                 /* একেবারে A4 */
+    height: 297mm;                 /* Absolutely A4 */
     padding: 10mm 12mm;
     box-sizing: border-box;
     overflow: hidden;
     background: #fff !important;
 
-    /* প্রিন্ট স্কেল */
+    /* Print scale */
     transform: translateX(-50%) scale(var(--print-scale, 0.96));
     transform-origin: top center;
 
     page-break-inside: avoid; break-inside: avoid;
   }
 
-  /* কন্ট্রোল/সাইড UI সরিয়ে দাও */
+  /* Remove Control/Side UI */
   header,
   footer,
   main > section:first-child,
   .export-hide { display: none !important; }
 
-  /* কোন অতিরিক্ত প্যাডিং/গ্যাপ যেন না লাগে */
+  /* No extra padding/gaps should be used. */
   main { padding: 0 !important; margin: 0 !important; }
   table { width: 100%; border-collapse: collapse; }
   .no-break { page-break-inside: avoid; break-inside: avoid; }  

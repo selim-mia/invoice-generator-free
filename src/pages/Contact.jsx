@@ -58,7 +58,7 @@ export default function ContactPage() {
           <p className="mt-2">
             <a className="underline" href="mailto:support@invoicenotepad.com">support@invoicenotepad.com</a>
           </p>
-          <p className="mt-2 text-sm text-slate-600">Typical response time: 1–2 business days</p>
+          <p className="mt-2 text-sm text-slate-600">Typical response time: 1-2 business days</p>
           <p className="mt-3 text-sm">
             Include your browser, OS, and steps to reproduce if reporting a bug.
           </p>
